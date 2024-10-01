@@ -7,10 +7,10 @@ if Config.BinocularsEnabled then
 
 
     local fov_max = 70.0
-    local fov_min = 10.0 -- max zoom level (smaller fov is more zoom)
+    local fov_min = 10.0   -- max zoom level (smaller fov is more zoom)
     local zoomspeed = 10.0 -- camera zoom speed
-    local speed_lr = 8.0 -- speed by which the camera pans left-right
-    local speed_ud = 8.0 -- speed by which the camera pans up-down
+    local speed_lr = 8.0   -- speed by which the camera pans left-right
+    local speed_ud = 8.0   -- speed by which the camera pans up-down
     local fov = (fov_max + fov_min) * 0.5
     local index = 0
     prop_binoc = nil
@@ -47,34 +47,28 @@ if Config.BinocularsEnabled then
         return scaleform
     end
 
-
     -- MAIN FUNCTION
     function UseBinocular()
         if IsPedSittingInAnyVehicle(PlayerPedId()) then
             return
         end
         if isInActionWithErrorMessage({ ['IsUsingBinoculars'] = true }) then
-          return
+            return
         end
         IsUsingBinoculars = not IsUsingBinoculars
 
         if IsUsingBinoculars then
             CreateThread(function()
-
                 DestroyAllProps()
                 ClearPedTasks(PlayerPedId())
-                RequestAnimDict("amb@world_human_binoculars@male@idle_a")
-                while not HasAnimDictLoaded("amb@world_human_binoculars@male@idle_a") do
-                    Wait(5)
-                end
+                LoadAnim("amb@world_human_binoculars@male@idle_a")
 
                 -- attach the prop to the player
                 local boneIndex = GetPedBoneIndex(PlayerPedId(), 28422)
                 local x, y, z = table.unpack(GetEntityCoords(PlayerPedId(), true))
-                if not HasModelLoaded("prop_binoc_01") then
-                    LoadPropDict("prop_binoc_01")
-                end
-                prop_binoc = CreateObject(GetHashKey("prop_binoc_01"), x, y, z + 0.2 , true, true, true)
+
+                LoadModel("prop_binoc_01")
+                prop_binoc = CreateObject(GetHashKey("prop_binoc_01"), x, y, z + 0.2, true, true, true)
                 AttachEntityToEntity(prop_binoc, PlayerPedId(), boneIndex, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
 
                 TaskPlayAnim(PlayerPedId(), "amb@world_human_binoculars@male@idle_a", "idle_c", 5.0, 5.0, -1, 51, 0, 0, 0, 0)
@@ -83,15 +77,14 @@ if Config.BinocularsEnabled then
 
                 RemoveAnimDict("amb@world_human_binoculars@male@idle_a")
                 SetModelAsNoLongerNeeded("prop_binoc_01")
-
             end)
+
             Wait(200)
+
             SetTimecycleModifier("default")
             SetTimecycleModifierStrength(0.3)
-            scaleform_bin = RequestScaleformMovie("BINOCULARS")
-            while not HasScaleformMovieLoaded(scaleform_bin) do
-                Wait(10)
-            end
+
+            scaleform_bin = LoadScaleform("BINOCULARS")
 
             local cam = CreateCam("DEFAULT_SCRIPTED_FLY_CAMERA", true)
 
@@ -99,6 +92,7 @@ if Config.BinocularsEnabled then
             SetCamRot(cam, 0.0, 0.0, GetEntityHeading(PlayerPedId()))
             SetCamFov(cam, fov)
             RenderScriptCams(true, false, 0, 1, 0)
+
             PushScaleformMovieFunction(scaleform_bin, "SET_CAM_LOGO")
             PushScaleformMovieFunctionParameterInt(0) -- 0 for nothing, 1 for LSPD logo
             PopScaleformMovieFunctionVoid()
@@ -117,6 +111,7 @@ if Config.BinocularsEnabled then
                 }
             end
             scaleform_instructions = SetupButtons(keyList)
+
             -- MAIN LOOP
             while IsUsingBinoculars and not IsEntityDead(PlayerPedId()) and not IsPedSittingInAnyVehicle(PlayerPedId()) do
                 if IsControlJustPressed(0, 177) then
@@ -129,10 +124,10 @@ if Config.BinocularsEnabled then
 
                 HandleZoom(cam)
                 HideHUDThisFrame()
-                DisableControlAction(0,25,true) -- disable aim
-                DisableControlAction(0, 44,  true) -- INPUT_COVER
-                DisableControlAction(0, 37,  true) -- INPUT_SELECT_WEAPON
-                DisableControlAction(0, 24,  true) -- Attack
+                DisableControlAction(0, 25, true)        -- disable aim
+                DisableControlAction(0, 44, true)        -- INPUT_COVER
+                DisableControlAction(0, 37, true)        -- INPUT_SELECT_WEAPON
+                DisableControlAction(0, 24, true)        -- Attack
                 DisablePlayerFiring(PlayerPedId(), true) -- Disable weapon firing
 
 
@@ -193,10 +188,10 @@ if Config.BinocularsEnabled then
         HideHelpTextThisFrame()
         HideHudAndRadarThisFrame()
         HideHudComponentThisFrame(19) -- weapon wheel
-        HideHudComponentThisFrame(1) -- Wanted Stars
-        HideHudComponentThisFrame(2) -- Weapon icon
-        HideHudComponentThisFrame(3) -- Cash
-        HideHudComponentThisFrame(4) -- MP CASH
+        HideHudComponentThisFrame(1)  -- Wanted Stars
+        HideHudComponentThisFrame(2)  -- Weapon icon
+        HideHudComponentThisFrame(3)  -- Cash
+        HideHudComponentThisFrame(4)  -- MP CASH
         HideHudComponentThisFrame(13) -- Cash Change
         HideHudComponentThisFrame(11) -- Floating Help Text
         HideHudComponentThisFrame(12) -- more floating help text
@@ -214,9 +209,6 @@ if Config.BinocularsEnabled then
             SetCamRot(cam, new_x, 0.0, new_z, 2)
         end
     end
-
-
-
 
     function HandleZoom(cam)
         local lPed = PlayerPedId()

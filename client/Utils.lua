@@ -21,6 +21,10 @@ function firstToUpper(str)
     return (str:gsub("^%l", string.upper))
 end
 
+function clamp(val, min, max)
+    if min > max then min, max = max, min end -- swap if boundaries supplied the wrong way
+    return math.max(min, math.min(max, val))
+end
 
 function IsPlayerAiming(player)
     return (IsPlayerFreeAiming(player) or IsAimCamActive() or IsAimCamThirdPersonActive()) and tonumber(GetSelectedPedWeapon(player)) ~= tonumber(GetHashKey("WEAPON_UNARMED"))
@@ -48,13 +52,6 @@ function ChangeHeadingSmooth(playerPed, amount, time)
     for _i = 1, times do
         Wait(wait)
         SetEntityHeading(playerPed, GetEntityHeading(playerPed) + test)
-    end
-end
-
-function EmoteChatMessage(msg, multiline)
-    if msg then
-        TriggerEvent("chat:addMessage",
-            { multiline = multiline == true or false, color = { 255, 255, 255 }, args = { "^1Help^0", tostring(msg) } })
     end
 end
 
@@ -88,14 +85,14 @@ function LoadAnim(dict)
         timeout = timeout - 5
     end
     if timeout == 0 then
-        DebugPrint("Loading anim dict " .. dict .. " timed out")
+        error("Loading anim dict " .. dict .. " timed out")
         return false
     else
         return true
     end
 end
 
-function LoadPropDict(model)
+function LoadModel(model)
     -- load the model if it's not loaded and wait until it's loaded or timeout
     if not HasModelLoaded(joaat(model)) then
         RequestModel(joaat(model))
@@ -105,14 +102,24 @@ function LoadPropDict(model)
             timeout = timeout - 5
         end
         if timeout == 0 then
-            DebugPrint("Loading model " .. model .. " timed out")
+            error("Loading model " .. model .. " timed out")
             return
         end
     end
 end
 
-function tableHasKey(table, key)
-    return table[key] ~= nil
+function LoadScaleform(movieName)
+    local scaleform = RequestScaleformMovie(movieName)
+    local timeout = 2000
+    while not HasScaleformMovieLoaded(scaleform) and timeout > 0 do
+        Wait(5)
+        timeout = timeout - 5
+    end
+    if timeout == 0 then
+        error("Loading scaleform " .. movieName .. " timed out")
+        return
+    end
+    return scaleform
 end
 
 function RequestWalking(set)
@@ -123,14 +130,13 @@ function RequestWalking(set)
     end
 end
 
-
 function GetPedInFront()
     local player = PlayerId()
     local plyPed = GetPlayerPed(player)
     local plyPos = GetEntityCoords(plyPed, false)
     local plyOffset = GetOffsetFromEntityInWorldCoords(plyPed, 0.0, 1.3, 0.0)
     local rayHandle = StartShapeTestCapsule(plyPos.x, plyPos.y, plyPos.z, plyOffset.x, plyOffset.y, plyOffset.z, 10.0, 12
-        , plyPed, 7)
+    , plyPed, 7)
     local _, _, _, _, ped2 = GetShapeTestResult(rayHandle)
     return ped2
 end
@@ -140,8 +146,8 @@ function NearbysOnCommand(source, args, raw)
     for a in pairsByKeys(RP.Shared) do
         NearbysCommand = NearbysCommand .. "" .. a .. ", "
     end
-    EmoteChatMessage(NearbysCommand)
-    EmoteChatMessage(Translate('emotemenucmd'))
+    SimpleNotify(NearbysCommand)
+    SimpleNotify(Translate('emotemenucmd'))
 end
 
 function GetClosestPlayer()
@@ -188,24 +194,22 @@ function isInActionWithErrorMessage(ignores)
     if (ignores == nil) then ignores = {} end
 
     if not ignores['IsProne'] and IsProne then
-        EmoteChatMessage(Translate('no_anim_crawling'))
+        SimpleNotify(Translate('no_anim_crawling'))
         return true
     end
     if not ignores['IsUsingNewscam'] and IsUsingNewscam then
         -- TODO: use specific error message
-        EmoteChatMessage(Translate('no_anim_right_now'))
+        SimpleNotify(Translate('no_anim_right_now'))
         return true
     end
     if not ignores['IsUsingBinoculars'] and IsUsingBinoculars then
         -- TODO: use specific error message
-        EmoteChatMessage(Translate('no_anim_right_now'))
+        SimpleNotify(Translate('no_anim_right_now'))
         return true
     end
 
     return false
 end
-
-
 
 ----------------------------------------------------------------------
 ShowPed = false
@@ -238,7 +242,7 @@ function ShowPedMenu(zoom)
                     if Config.MenuPosition == "left" then
                         screencoordsX = 1.0 - screencoordsX
                     end
-                    local world, normal =  GetWorldCoordFromScreenCoord(screencoordsX, screencoordsY) --  GetWorldCoordFromScreenCoord(0.67135417461395, 0.7787036895752)
+                    local world, normal = GetWorldCoordFromScreenCoord(screencoordsX, screencoordsY)  --  GetWorldCoordFromScreenCoord(0.67135417461395, 0.7787036895752)
                     local depth = 3.5
                     local target = world + normal * depth
                     local camRot = GetGameplayCamRot(2)
@@ -257,7 +261,7 @@ function ShowPedMenu(zoom)
                     SetEntityCoords(clonedPed, averagedTarget.x, averagedTarget.y, averagedTarget.z, false, false, false, true)
                     local heading_offset = Config.MenuPosition == "left" and 170.0 or 190.0
                     SetEntityHeading(clonedPed, camRot.z + heading_offset)
-                    SetEntityRotation(clonedPed, camRot.x*(-1), 0, camRot.z + 170.0, 2, false)
+                    SetEntityRotation(clonedPed, camRot.x * (-1), 0, camRot.z + 170.0, 2, false)
 
                     Wait(4)
                 end
@@ -286,7 +290,7 @@ function ShowPedMenu(zoom)
                     SetEntityCoords(clonedPed, averagedTarget.x, averagedTarget.y, averagedTarget.z, false, false, false, true)
                     local heading_offset = Config.MenuPosition == "left" and 170.0 or 190.0
                     SetEntityHeading(clonedPed, camRot.z + heading_offset)
-                    SetEntityRotation(clonedPed, camRot.x*(-1), 0, camRot.z + 170.0, 2, false)
+                    SetEntityRotation(clonedPed, camRot.x * (-1), 0, camRot.z + 170.0, 2, false)
 
                     Wait(4)
                 end

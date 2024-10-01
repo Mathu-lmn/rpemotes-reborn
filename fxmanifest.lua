@@ -8,7 +8,7 @@ use_experimental_fxv2_oal 'yes'
 
 provide "rpemotes"
 
-dependencies{
+dependencies {
     -- '/server:7290',
     '/server:6683',
     '/onesync'
@@ -20,27 +20,27 @@ dependencies{
 -- server_script '@oxmysql/lib/MySQL.lua'
 --#endregion oxmysql
 
-files{
+files {
     'conditionalanims.meta',
     'header.png'
 }
 
 data_file 'CONDITIONAL_ANIMS_FILE' 'conditionalanims.meta'
 
-shared_scripts{
+shared_scripts {
     'config.lua',
     'locale.lua',
     'locales/*.lua',
     'animals.lua'
 }
 
-server_scripts{
+server_scripts {
     'server/Server.lua',
     'server/Updates.lua',
     'server/frameworks/*.lua'
 }
 
-client_scripts{
+client_scripts {
     'NativeUI.lua',
     'client/Utils.lua',
     'client/AnimationList.lua',

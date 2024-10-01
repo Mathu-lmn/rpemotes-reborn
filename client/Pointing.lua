@@ -4,8 +4,6 @@ local function IsPlayerAiming(player)
     return IsPlayerFreeAiming(player) or IsAimCamActive() or IsAimCamThirdPersonActive()
 end
 
---- Enabled pointing in a car, however hands up and pointing on a bike is broken until someone can give enough of a fuck to chime in and fix it. ---
-
 local function CanPlayerPoint(playerId, playerPed)
     if not DoesEntityExist(playerPed) or IsPedOnAnyBike(playerPed) or IsPlayerAiming(playerId) or IsPedFalling(playerPed) or IsPedInjured(playerPed) or IsPedInMeleeCombat(playerPed) or IsPedRagdoll(playerPed) or not IsPedHuman(playerPed) then
         return false
@@ -24,21 +22,16 @@ local function PointingStopped()
     end
     RemoveAnimDict("anim@mp_point")
     if Config.PersistentEmoteAfterPointing and IsInAnimation then
-        local emote = RP.Emotes[CurrentAnimationName]
-        if not emote then
-            emote = RP.PropEmotes[CurrentAnimationName]
-        end
-
+        local emotePlaying = LocalPlayer.state.emote
+        local emote = RP.Emotes[emotePlaying] or RP.Dances[emotePlaying] or RP.AnimalEmotes[emotePlaying] or RP.PropEmotes[emotePlaying]
         if not emote then
             return
         end
 
-        emote.name = CurrentAnimationName
-
         ClearPedSecondaryTask(playerPed)
         Wait(400)
         DestroyAllProps()
-        OnEmotePlay(emote, emote.name)
+        OnEmotePlay(emote)
     end
 end
 
@@ -68,15 +61,11 @@ local function PointingThread()
             local cosCamHeading = math.cos(camHeading)
             local sinCamHeading = math.sin(camHeading)
 
-            if camHeading < -180.0 then
-                camHeading = -180.0
-            elseif camHeading > 180.0 then
-                camHeading = 180.0
-            end
+            camHeading = clamp(camHeading, -180.0, 180.0)
 
             camHeading = (camHeading + 180.0) / 360.0
             local coords = GetOffsetFromEntityInWorldCoords(playerPed, (cosCamHeading * -0.2) - (sinCamHeading * (0.4 * camHeading + 0.3)), (sinCamHeading * -0.2) + (cosCamHeading * (0.4 * camHeading + 0.3)), 0.6)
-            local _rayHandle, blocked = GetShapeTestResult(StartShapeTestCapsule(coords.x, coords.y, coords.z - 0.2, coords.x, coords.y, coords.z + 0.2, 0.4, 95, playerPed, 7))
+            local _, blocked = GetShapeTestResult(StartShapeTestCapsule(coords.x, coords.y, coords.z - 0.2, coords.x, coords.y, coords.z + 0.2, 0.4, 95, playerPed, 7))
 
             SetTaskMoveNetworkSignalFloat(playerPed, 'Pitch', camPitch)
             SetTaskMoveNetworkSignalFloat(playerPed, 'Heading', (camHeading * -1.0) + 1.0)
@@ -100,12 +89,10 @@ local function StartPointing()
 
     Pointing = not Pointing
 
-    -- If we should point and the animation was loaded, then start pointing
     if Pointing and LoadAnim("anim@mp_point") then
         SetPedConfigFlag(playerPed, 36, true)
         TaskMoveNetworkByName(playerPed, 'task_mp_pointing', 0.5, false, 'anim@mp_point', 24)
         DestroyAllProps()
-        -- Start thread
         PointingThread()
     end
 end

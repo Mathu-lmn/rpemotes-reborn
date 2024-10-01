@@ -8,7 +8,6 @@ local forceEndProne = false
 
 -- Crouching --
 
----Resets the crouch effect (clipsets etc.)
 local function ResetCrouch()
     local playerPed = PlayerPedId()
 
@@ -17,7 +16,7 @@ local function ResetCrouch()
     SetPedMaxMoveBlendRatio(playerPed, 1.0)
     SetPedCanPlayAmbientAnims(playerPed, true)
 
-    -- Applies the previous walk style (or resets to default if non had been set)
+    -- Applies the previous walk style
     local walkstyle = GetResourceKvpString("walkstyle")
     if walkstyle ~= nil then
         RequestWalking(walkstyle)
@@ -30,20 +29,17 @@ local function ResetCrouch()
     RemoveAnimSet('move_ped_crouched')
 end
 
----Starts the crouch loop
 local function CrouchLoop()
     local playerId = PlayerId()
 
     while isCrouched do
         local playerPed = PlayerPedId()
 
-        -- Checks if the player is falling, in vehicle, dead etc.
         if not CanPlayerCrouchCrawl(playerPed) then
             isCrouched = false
             break
         end
 
-        -- Limit the speed that the player can walk when aiming
         if IsPlayerAiming(playerId) then
             SetPedMaxMoveBlendRatio(playerPed, 0.15)
         end
@@ -57,12 +53,10 @@ local function CrouchLoop()
             SetPedUsingActionMode(playerPed, false, -1, 'DEFAULT_ACTION')
         end
 
-        -- Disable first person
         DisableFirstPersonCamThisFrame()
 
-        -- added to disable crouch firing which may not fit in some servers
         if Config.FpsMode == true then
-            DisablePlayerFiring(playerId, true)  -- the boolean here doesn't matter, false or true will disable firing
+            DisablePlayerFiring(playerId, true)
         end
 
         Wait(0)
@@ -70,23 +64,19 @@ local function CrouchLoop()
 
     TriggerEvent('crouch_crawl:onCrouch', false)
 
-    -- Reset walk style and ped variables
     ResetCrouch()
 end
 
----Starts crouching
 local function StartCrouch()
     isCrouched = true
     RequestWalking('move_ped_crouched')
     local playerPed = PlayerPedId()
 
-    -- Force leave stealth mode
     if GetPedStealthMovement(playerPed) ~= 0 then
         SetPedStealthMovement(playerPed, false, 'DEFAULT_ACTION')
         Wait(100)
     end
 
-    -- Force leave first person view
     if GetFollowPedCamViewMode() == 4 then
         SetFollowPedCamViewMode(0) -- THIRD_PERSON_NEAR
     end
@@ -94,7 +84,6 @@ local function StartCrouch()
     SetPedMovementClipset(playerPed, 'move_ped_crouched', 0.6)
     SetPedStrafeClipset(playerPed, 'move_ped_crouched_strafing')
 
-    -- For other scripts to use
     TriggerEvent('crouch_crawl:onCrouch', true)
 
     CreateThread(CrouchLoop)
@@ -123,21 +112,18 @@ local function DisableControlUntilReleased(padIndex, control)
     end)
 end
 
----Called when the crouch key is pressed
 local function CrouchKeyPressed()
     if not LocalPlayer.state.canEmote then return end
 
-    -- If we already are doing something, then don't continue
     if inAction then
         return
     end
 
-    -- Don't start/stop crouching if we are in the pause menu or the NUI is in focus
     if IsPauseMenuActive() or IsNuiFocused() then
         return
     end
 
-    -- If crouched then stop crouching
+    -- stop crouching
     if isCrouched then
         isCrouched = false
         local crouchKey = GetControlInstructionalButton(0, `+crouch` | 0x80000000, false)
@@ -151,10 +137,8 @@ local function CrouchKeyPressed()
         return
     end
 
-    -- Get the player ped
     local playerPed = PlayerPedId()
 
-    -- Check if we can actually crouch and check if the player ped is humanoid
     if not CanPlayerCrouchCrawl(playerPed) or not IsPedHuman(playerPed) then
         return
     end
@@ -162,14 +146,12 @@ local function CrouchKeyPressed()
     -- Get +crouch, INPUT_LOOK_BEHIND and INPUT_DUCK controls
     local crouchKey = GetControlInstructionalButton(0, `+crouch` | 0x80000000, false)
     local lookBehindKey = GetControlInstructionalButton(0, 26, false) -- INPUT_LOOK_BEHIND
-    local duckKey = GetControlInstructionalButton(0, 36, false) -- INPUT_DUCK
+    local duckKey = GetControlInstructionalButton(0, 36, false)       -- INPUT_DUCK
 
-    -- Disable look behind if the crouch and look behind keys are the same
     if crouchKey == lookBehindKey then
         DisableControlUntilReleased(0, 26) -- INPUT_LOOK_BEHIND
     end
 
-    -- If the crouch and duck key are the same
     if crouchKey == duckKey then
         if Config.CrouchOverrideStealthMode then
             DisableControlAction(0, 36, true) -- Disable INPUT_DUCK this frame
@@ -187,10 +169,8 @@ local function CrouchKeyPressed()
         end
     end
 
-    -- Start to crouch
     StartCrouch()
 
-    -- If we are prone play an animation from prone to crouch
     if IsProne then
         inAction = true
         IsProne = false
@@ -225,7 +205,7 @@ end
 ---@param blendInSpeed number|nil
 local function PlayIdleCrawlAnim(playerPed, heading, blendInSpeed)
     local playerCoords = GetEntityCoords(playerPed)
-    TaskPlayAnimAdvanced(playerPed, 'move_crawl', proneType..'_fwd', playerCoords.x, playerCoords.y, playerCoords.z, 0.0, 0.0, heading or GetEntityHeading(playerPed), blendInSpeed or 2.0, 2.0, -1, 2, 1.0, false, false)
+    TaskPlayAnimAdvanced(playerPed, 'move_crawl', proneType .. '_fwd', playerCoords.x, playerCoords.y, playerCoords.z, 0.0, 0.0, heading or GetEntityHeading(playerPed), blendInSpeed or 2.0, 2.0, -1, 2, 1.0, false, false)
 end
 
 ---@param forceEnd boolean
@@ -261,7 +241,7 @@ end
 local function Crawl(playerPed, type, direction)
     isCrawling = true
 
-    TaskPlayAnim(playerPed, 'move_crawl', type..'_'..direction, 8.0, -8.0, -1, 2, 0.0, false, false, false)
+    TaskPlayAnim(playerPed, 'move_crawl', type .. '_' .. direction, 8.0, -8.0, -1, 2, 0.0, false, false, false)
 
     local time = {
         ['onfront'] = {
@@ -309,24 +289,21 @@ local function CrawlLoop()
     while IsProne do
         local playerPed = PlayerPedId()
 
-        -- Checks if the player is falling, in vehicle, dead etc.
         if not CanPlayerCrouchCrawl(playerPed) or IsEntityInWater(playerPed) then
             ClearPedTasks(playerPed)
             stopPlayerProne(true)
             break
         end
 
-        -- Handles forwad/backward movement
         local forward, backwards = IsControlPressed(0, 32), IsControlPressed(0, 33) -- INPUT_MOVE_UP_ONLY, INPUT_MOVE_DOWN_ONLY
         if not isCrawling then
-            if forward then -- Forward
+            if forward then
                 Crawl(playerPed, proneType, 'fwd')
-            elseif backwards then -- Back
+            elseif backwards then
                 Crawl(playerPed, proneType, 'bwd')
             end
         end
 
-        -- Moving left/right
         if IsControlPressed(0, 34) then -- INPUT_MOVE_LEFT_ONLY
             if isCrawling then
                 local headingDiff = forward and 1.0 or -1.0
@@ -367,7 +344,6 @@ local function CrawlLoop()
             end
         end
 
-        -- Flipping around
         if not isCrawling then
             if IsControlPressed(0, 22) then -- INPUT_JUMP
                 CrawlFlip(playerPed)
@@ -379,47 +355,38 @@ local function CrawlLoop()
 
     TriggerEvent('crouch_crawl:onCrawl', false)
 
-    -- If the crawling wasn't forcefully ended, then play the get up animations
     PlayExitCrawlAnims(forceEndProne)
 
-    -- Reset variabels
     isCrawling = false
     inAction = false
     forceEndProne = false
     proneType = 'onfront'
     SetPedConfigFlag(PlayerPedId(), 48, false) -- CPED_CONFIG_FLAG_BlockWeaponSwitching
 
-    -- Unload animation dictionaries
     RemoveAnimDict('move_crawl')
     RemoveAnimDict('move_crawlprone2crawlfront')
 end
 
----Gets called when the crawl key is pressed
 local function CrawlKeyPressed()
     if not LocalPlayer.state.canEmote then return end
 
-    -- If we already are doing something, then don't continue
     if inAction then
         return
     end
 
-    -- Don't start/stop to crawl if we are in the pause menu or the NUI is in focus
     if IsPauseMenuActive() or IsNuiFocused() then
         return
     end
 
-    -- If already prone, then stop
     if IsProne then
         IsProne = false
         return
     end
 
-    -- If we are playing an animation, then cancel it first
     if IsInAnimation then
         EmoteCancel()
     end
 
-    -- If we are crouching we should stop that first
     local wasCrouched = false
     if isCrouched then
         isCrouched = false
@@ -432,7 +399,6 @@ local function CrawlKeyPressed()
     end
     inAction = true
 
-    -- If we are pointing then stop pointing
     if Pointing then
         Pointing = false
     end
@@ -441,20 +407,18 @@ local function CrawlKeyPressed()
         return
     end
 
-    if isInActionWithErrorMessage({['IsProne'] = true}) then
+    if isInActionWithErrorMessage({ ['IsProne'] = true }) then
         return
     end
 
     IsProne = true
     SetPedConfigFlag(playerPed, 48, true) -- CPED_CONFIG_FLAG_BlockWeaponSwitching
 
-    -- Force leave stealth mode
     if GetPedStealthMovement(playerPed) ~= 0 then
         SetPedStealthMovement(playerPed, false, 'DEFAULT_ACTION')
         Wait(100)
     end
 
-    -- Load animations that the crawling is going to use
     LoadAnim('move_crawl')
     LoadAnim('move_crawlprone2crawlfront')
 
@@ -516,28 +480,28 @@ end
 ---Returns if the player is crouched
 ---@return boolean
 local function IsPlayerCrouched()
-	return isCrouched
+    return isCrouched
 end
 exports('IsPlayerCrouched', IsPlayerCrouched)
 
 ---Returns if the player is prone (both when laying still and when moving)
 ---@return boolean
 local function IsPlayerProne()
-	return IsProne
+    return IsProne
 end
 exports('IsPlayerProne', IsPlayerProne)
 
 ---Returns if the player is crawling (only when moving forward/backward)
 ---@return boolean
 local function IsPlayerCrawling()
-	return isCrawling
+    return isCrawling
 end
 exports('IsPlayerCrawling', IsPlayerCrawling)
 
 ---Returns either "onfront" or "onback", this can be used to check if the player is on his back or on his stomach. NOTE: This will still return a string even if the player is not prone. Use IsPlayerProne() to check if the player is prone.
 ---@return string
 local function GetPlayerProneType()
-	return proneType
+    return proneType
 end
 exports('GetPlayerProneType', GetPlayerProneType)
 

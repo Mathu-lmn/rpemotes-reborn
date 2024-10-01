@@ -66,20 +66,15 @@ if Config.NewscamEnabled then
             CreateThread(function()
                 DestroyAllProps()
                 ClearPedTasks(PlayerPedId())
-                RequestAnimDict("missfinale_c2mcs_1")
-                while not HasAnimDictLoaded("missfinale_c2mcs_1") do
-                    Wait(5)
-                end
+                LoadAnim("missfinale_c2mcs_1")
 
                 -- attach the prop to the player
                 local boneIndex = GetPedBoneIndex(PlayerPedId(), 28422)
                 local x, y, z = table.unpack(GetEntityCoords(PlayerPedId(), true))
-                if not HasModelLoaded("prop_v_cam_01") then
-                    LoadPropDict("prop_v_cam_01")
-                end
+
+                LoadModel("prop_v_cam_01")
                 prop_newscam = CreateObject(GetHashKey("prop_v_cam_01"), x, y, z + 0.2, true, true, true)
-                AttachEntityToEntity(prop_newscam, PlayerPedId(), boneIndex, 0.0, 0.03, 0.01, 0.0, 0.0, 0.0, true, true,
-                    false, true, 1, true)
+                AttachEntityToEntity(prop_newscam, PlayerPedId(), boneIndex, 0.0, 0.03, 0.01, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
 
                 TaskPlayAnim(PlayerPedId(), "missfinale_c2mcs_1", "fin_c2_mcs_1_camman", 5.0, 5.0, -1, 51, 0, 0, 0, 0)
                 PlayAmbientSpeech1(PlayerPedId(), "GENERIC_CURSE_MED", "SPEECH_PARAMS_FORCE")
@@ -88,14 +83,12 @@ if Config.NewscamEnabled then
                 RemoveAnimDict("missfinale_c2mcs_1")
                 SetModelAsNoLongerNeeded("prop_v_cam_01")
             end)
+
             Wait(200)
             SetTimecycleModifier("default")
             SetTimecycleModifierStrength(0.3)
-            local breaking_news = RequestScaleformMovie("breaking_news")
-            while not HasScaleformMovieLoaded(breaking_news) do
-                Wait(10)
-            end
 
+            local breaking_news = LoadScaleform("breaking_news")
 
             PushScaleformMovieFunction(breaking_news, "breaking_news")
             PopScaleformMovieFunctionVoid()
@@ -246,10 +239,7 @@ if Config.NewscamEnabled then
 
         -- reset the scaleform and set the new values
         SetScaleformMovieAsNoLongerNeeded(breaking_news)
-        breaking_news = RequestScaleformMovie("breaking_news")
-        while not HasScaleformMovieLoaded(breaking_news) do
-            Wait(10)
-        end
+        breaking_news = LoadScaleform("breaking_news")
 
         PushScaleformMovieFunction(breaking_news, "breaking_news")
         PopScaleformMovieFunctionVoid()

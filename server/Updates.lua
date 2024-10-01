@@ -26,8 +26,8 @@ if Config.CheckForUpdates then
                 local latestVersion = releaseInfo.tag_name:match('%d+%.%d+%.%d+')
                 if not latestVersion or latestVersion == currentVersion then return end
 
-                local currentVerParts = {string.match(currentVersion, '(%d+)%.(%d+)%.(%d+)')}
-                local latestVerParts = {string.match(latestVersion, '(%d+)%.(%d+)%.(%d+)')}
+                local currentVerParts = { string.match(currentVersion, '(%d+)%.(%d+)%.(%d+)') }
+                local latestVerParts = { string.match(latestVersion, '(%d+)%.(%d+)%.(%d+)') }
 
                 for i = 1, #currentVerParts do
                     local currPart = tonumber(currentVerParts[i])

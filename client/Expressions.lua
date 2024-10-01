@@ -11,11 +11,11 @@ end
 local function DisplayExpressions()
     local moodsString = ""
     for name, _ in pairs(RP.Expressions) do
-        moodsString = moodsString..string.lower(name)..", "
+        moodsString = moodsString .. string.lower(name) .. ", "
     end
 
-    EmoteChatMessage(moodsString)
-    EmoteChatMessage("To reset do /mood reset")
+    SimpleNotify(moodsString)
+    SimpleNotify("To reset do /mood reset")
 end
 
 if Config.ExpressionsEnabled then
@@ -27,7 +27,7 @@ if Config.ExpressionsEnabled then
             ClearFacialIdleAnimOverride(PlayerPedId())
             DeleteResourceKvp("expression")
         else
-            EmoteChatMessage("'"..expression.."' is not a valid mood, do /moods to see all moods.")
+            SimpleNotify("'" .. expression .. "' is not a valid mood, do /moods to see all moods.")
         end
     end, false)
 
@@ -68,5 +68,4 @@ if Config.ExpressionsEnabled then
             end
         end)
     end
-
 end

@@ -1,9 +1,16 @@
-InSearch = false
-
-
+local inSearch = false
 local rightPosition = { x = 1430, y = 200 }
 local leftPosition = { x = 0, y = 200 }
 local menuPosition = { x = 0, y = 200 }
+local EmoteTable = {}
+local FavEmoteTable = {}
+local DanceTable = {}
+local AnimalTable = {}
+local PropETable = {}
+local WalkTable = {}
+local FaceTable = {}
+local ShareTable = {}
+local FavoriteEmote = ""
 
 if GetAspectRatio() > 2.0 then
     rightPosition = { x = 1200, y = 100 }
@@ -30,16 +37,6 @@ _menuPool = NativeUI.CreatePool()
 mainMenu = NativeUI.CreateMenu(Config.MenuTitle or "", "", menuPosition["x"], menuPosition["y"], Menuthing, Menuthing)
 _menuPool:Add(mainMenu)
 
-local EmoteTable = {}
-local FavEmoteTable = {}
-local DanceTable = {}
-local AnimalTable = {}
-local PropETable = {}
-local WalkTable = {}
-local FaceTable = {}
-local ShareTable = {}
-local FavoriteEmote = ""
-
 if Config.FavKeybindEnabled then
     RegisterCommand('emotefav', function() FavKeybind() end, false)
     RegisterKeyMapping("emotefav", Translate("register_fav_anim"), "keyboard", Config.FavKeybind)
@@ -51,7 +48,7 @@ if Config.FavKeybindEnabled then
             doingFavoriteEmote = true
             if not IsPedSittingInAnyVehicle(PlayerPedId()) then
                 if FavoriteEmote ~= "" and (not CanUseFavKeyBind or CanUseFavKeyBind()) then
-                    EmoteCommandStart(nil, { FavoriteEmote, 0 })
+                    EmoteCommandStart({ FavoriteEmote, 0 })
                     Wait(500)
                 end
             end
@@ -61,8 +58,6 @@ if Config.FavKeybindEnabled then
         end
     end
 end
-
-lang = Config.MenuLanguage
 
 function AddEmoteMenu(menu)
     local submenu = _menuPool:AddSubMenu(menu, Translate('emotes'), "", true, true)
@@ -265,7 +260,7 @@ function AddEmoteMenu(menu)
         EmoteMenuStart(PropETable[index], "props")
     end
 
-   propmenu.OnListSelect = function(menu, item, itemIndex, listIndex)
+    propmenu.OnListSelect = function(menu, item, itemIndex, listIndex)
         EmoteMenuStart(PropETable[itemIndex], "props", item:IndexToItem(listIndex).Value)
     end
 
@@ -278,11 +273,10 @@ function AddEmoteMenu(menu)
     end
 
     submenu.OnMenuClosed = function(menu)
-        if not InSearch then
+        if not inSearch then
             ClosePedMenu()
         end
     end
-
 end
 
 if Config.Search then
@@ -308,16 +302,16 @@ if Config.Search then
                 if not ignoredCategories[k] then
                     for a, b in pairs(v) do
                         if string.find(string.lower(a), string.lower(input)) or (b[3] ~= nil and string.find(string.lower(b[3]), string.lower(input))) then
-                            table.insert(results, {table = k, name = a, data = b})
+                            table.insert(results, { table = k, name = a, data = b })
                         end
                     end
                 end
             end
 
             if #results > 0 then
-                InSearch = true
+                inSearch = true
 
-                local searchMenu = _menuPool:AddSubMenu(lastMenu, string.format('%s '..Translate('searchmenudesc')..' ~r~%s~w~', #results, input), "", true, true)
+                local searchMenu = _menuPool:AddSubMenu(lastMenu, string.format('%s ' .. Translate('searchmenudesc') .. ' ~r~%s~w~', #results, input), "", true, true)
                 local sharedDanceMenu
                 if favEnabled then
                     local rFavorite = NativeUI.CreateItem(Translate('rfavorite'), Translate('rfavorite'))
@@ -334,9 +328,9 @@ if Config.Search then
                     if v.table == "Shared" then
                         local otheremotename = v.data[4]
                         if otheremotename == nil then
-                           desc = "/nearby (~g~" .. v.name .. "~w~)"
+                            desc = "/nearby (~g~" .. v.name .. "~w~)"
                         else
-                           desc = "/nearby (~g~" .. v.name .. "~w~) " .. Translate('makenearby') .. " (~y~" .. otheremotename .. "~w~)"
+                            desc = "/nearby (~g~" .. v.name .. "~w~) " .. Translate('makenearby') .. " (~y~" .. otheremotename .. "~w~)"
                         end
                     else
                         desc = "/e (" .. v.name .. ")" .. (favEnabled and "\n" .. Translate('searchshifttofav') or "")
@@ -362,7 +356,7 @@ if Config.Search then
 
 
                 searchMenu.OnMenuChanged = function(menu, newmenu, forward)
-                    InSearch = false
+                    inSearch = false
                     ShowPedMenu()
                 end
 
@@ -454,7 +448,7 @@ if Config.Search then
                 searchMenu:Visible(true)
                 ShowPedMenu()
             else
-                SimpleNotify(string.format(Translate('searchnoresult')..' ~r~%s~w~', input))
+                SimpleNotify(string.format(Translate('searchnoresult') .. ' ~r~%s~w~', input))
             end
         end
     end
@@ -469,11 +463,10 @@ function AddCancelEmote(menu)
     end
 end
 
-
 ShowPedPreview = function(menu)
     menu.OnItemSelect = function(sender, item, index)
         if (index == 1) then
-            InSearch = false
+            inSearch = false
             ShowPedMenu()
         elseif index == 4 then
             ShowPedMenu(true)
@@ -505,7 +498,6 @@ function AddWalkMenu(menu)
             WalkMenuStart(WalkTable[index])
         else
             ResetWalk()
-            DeleteResourceKvp("walkstyle")
         end
     end
 end
@@ -545,8 +537,8 @@ end
 function AddInfoMenu(menu)
     infomenu = _menuPool:AddSubMenu(menu, Translate('infoupdate'), "~h~~y~The RPEmotes Team & Collaborators~h~~y~", true, true)
 
-    for _,v in ipairs(Config.Credits) do
-        local item = NativeUI.CreateItem(v.title,v.subtitle or "")
+    for _, v in ipairs(Config.Credits) do
+        local item = NativeUI.CreateItem(v.title, v.subtitle or "")
         infomenu:AddItem(item)
     end
 end
@@ -554,20 +546,12 @@ end
 function OpenEmoteMenu()
     if IsEntityDead(PlayerPedId()) then
         -- show in chat
-        TriggerEvent('chat:addMessage', {
-            color = {255, 0, 0},
-            multiline = true,
-            args = {"RPEmotes", Translate('dead')}
-        })
+        SimpleNotify(Translate('dead'))
         return
     end
     if (IsPedSwimming(PlayerPedId()) or IsPedSwimmingUnderWater(PlayerPedId())) and not Config.AllowInWater then
         -- show in chat
-        TriggerEvent('chat:addMessage', {
-            color = {255, 0, 0},
-            multiline = true,
-            args = {"RPEmotes", Translate('swimming')}
-        })
+        SimpleNotify(Translate('swimming'))
         return
     end
     if _menuPool:IsAnyMenuOpen() then

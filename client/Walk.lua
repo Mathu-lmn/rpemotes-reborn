@@ -3,7 +3,7 @@ local unable_message = "You are unable to change your walking style right now."
 
 function WalkMenuStart(name)
     if not canChange then
-        EmoteChatMessage(unable_message)
+        SimpleNotify(unable_message)
         return
     end
     if Config.PersistentWalk then SetResourceKvp("walkstyle", name) end
@@ -14,10 +14,11 @@ end
 
 function ResetWalk()
     if not canChange then
-        EmoteChatMessage(unable_message)
+        SimpleNotify(unable_message)
         return
     end
     ResetPedMovementClipset(PlayerPedId())
+    DeleteResourceKvp("walkstyle")
 end
 
 function WalksOnCommand()
@@ -25,30 +26,28 @@ function WalksOnCommand()
     for a in pairsByKeys(RP.Walks) do
         WalksCommand = WalksCommand .. "" .. string.lower(a) .. ", "
     end
-    EmoteChatMessage(WalksCommand)
-    EmoteChatMessage("To reset do /walk reset")
+    SimpleNotify(WalksCommand)
+    SimpleNotify("To reset do /walk reset")
 end
 
 function WalkCommandStart(name)
     if not canChange then
-        EmoteChatMessage(unable_message)
+        SimpleNotify(unable_message)
         return
     end
     name = firstToUpper(string.lower(name))
 
     if name == "Reset" then
-        ResetPedMovementClipset(PlayerPedId())
-        DeleteResourceKvp("walkstyle")
+        ResetWalk()
         return
     end
 
-    if tableHasKey(RP.Walks, name) then
-        local name2 = table.unpack(RP.Walks[name])
-        WalkMenuStart(name2)
+    if RP.Walks[name] then
+        WalkMenuStart(RP.Walks[name][1])
     elseif name == "Injured" then
         WalkMenuStart("move_m@injured")
     else
-        EmoteChatMessage("'" .. name .. "' is not a valid walk")
+        SimpleNotify("'" .. name .. "' is not a valid walk")
     end
 end
 
@@ -73,8 +72,7 @@ if Config.WalkingStylesEnabled and Config.PersistentWalk then
             if walkstyleExists(kvp) then
                 WalkMenuStart(kvp)
             else
-                ResetPedMovementClipset(PlayerPedId(), 0.0)
-                DeleteResourceKvp("walkstyle")
+                ResetWalk()
             end
         end
     end
@@ -101,6 +99,7 @@ function toggleWalkstyle(bool, message)
     end
 end
 
+-- Exports --
 exports('toggleWalkstyle', toggleWalkstyle)
 
 exports('getWalkstyle', function()

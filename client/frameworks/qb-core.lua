@@ -46,7 +46,7 @@ end
 -- Added events
 RegisterNetEvent('animations:client:PlayEmote', function(args)
     if not PlayerData.metadata['inlaststand'] and not PlayerData.metadata['isdead'] then
-        EmoteCommandStart(source, args)
+        EmoteCommandStart(args)
     end
 end)
 
@@ -97,6 +97,6 @@ end)
 
 RegisterNetEvent('animations:client:EmoteCommandStart', function(args)
     if CanDoEmote then
-        EmoteCommandStart(source, args)
+        EmoteCommandStart(args)
     end
 end)

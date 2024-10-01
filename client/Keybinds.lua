@@ -27,15 +27,14 @@ if Config.SqlKeybinding then
             end
 
             if not IsPedSittingInAnyVehicle(PlayerPedId()) then
-
                 for k, v in pairs(Config.KeybindKeys) do
                     if IsControlJustReleased(0, v) then
-                        if k == keyb1 then if emob1 ~= "" then EmoteCommandStart(nil, { emob1, 0 }) end end
-                        if k == keyb2 then if emob2 ~= "" then EmoteCommandStart(nil, { emob2, 0 }) end end
-                        if k == keyb3 then if emob3 ~= "" then EmoteCommandStart(nil, { emob3, 0 }) end end
-                        if k == keyb4 then if emob4 ~= "" then EmoteCommandStart(nil, { emob4, 0 }) end end
-                        if k == keyb5 then if emob5 ~= "" then EmoteCommandStart(nil, { emob5, 0 }) end end
-                        if k == keyb6 then if emob6 ~= "" then EmoteCommandStart(nil, { emob6, 0 }) end end
+                        if k == keyb1 then if emob1 ~= "" then EmoteCommandStart({ emob1, 0 }) end end
+                        if k == keyb2 then if emob2 ~= "" then EmoteCommandStart({ emob2, 0 }) end end
+                        if k == keyb3 then if emob3 ~= "" then EmoteCommandStart({ emob3, 0 }) end end
+                        if k == keyb4 then if emob4 ~= "" then EmoteCommandStart({ emob4, 0 }) end end
+                        if k == keyb5 then if emob5 ~= "" then EmoteCommandStart({ emob5, 0 }) end end
+                        if k == keyb6 then if emob6 ~= "" then EmoteCommandStart({ emob6, 0 }) end end
                         Wait(1000)
                     end
                 end
@@ -72,17 +71,23 @@ if Config.SqlKeybinding then
 
     RegisterNetEvent("rp:ClientKeybindGetOne", function(key, e)
         SimpleNotify(Translate('boundto', e, firstToUpper(key)))
-        if key == "num4" then emob1 = e
+        if key == "num4" then
+            emob1 = e
             keyb1 = "num4"
-        elseif key == "num5" then emob2 = e
+        elseif key == "num5" then
+            emob2 = e
             keyb2 = "num5"
-        elseif key == "num6" then emob3 = e
+        elseif key == "num6" then
+            emob3 = e
             keyb3 = "num6"
-        elseif key == "num7" then emob4 = e
+        elseif key == "num7" then
+            emob4 = e
             keyb4 = "num7"
-        elseif key == "num8" then emob5 = e
+        elseif key == "num8" then
+            emob5 = e
             keyb5 = "num8"
-        elseif key == "num9" then emob6 = e
+        elseif key == "num9" then
+            emob6 = e
             keyb6 = "num9"
         end
     end)
@@ -92,7 +97,7 @@ if Config.SqlKeybinding then
     -----------------------------------------------------------------------------------------------------
 
     function EmoteBindsStart()
-        EmoteChatMessage(Translate('currentlyboundemotes') .. "\n"
+        SimpleNotify(Translate('currentlyboundemotes') .. "\n"
             .. firstToUpper(keyb1) .. " = '^2" .. emob1 .. "^7'\n"
             .. firstToUpper(keyb2) .. " = '^2" .. emob2 .. "^7'\n"
             .. firstToUpper(keyb3) .. " = '^2" .. emob3 .. "^7'\n"
@@ -113,10 +118,10 @@ if Config.SqlKeybinding then
                 then
                     TriggerServerEvent("rp:ServerKeybindUpdate", key, emote)
                 else
-                    EmoteChatMessage("'" .. emote .. "' " .. Translate('notvalidemote') .. "")
+                    SimpleNotify("'" .. emote .. "' " .. Translate('notvalidemote') .. "")
                 end
             else
-                EmoteChatMessage("'" .. key .. "' " .. Translate('notvalidkey'))
+                SimpleNotify("'" .. key .. "' " .. Translate('notvalidkey'))
             end
         else
             print("invalid")
@@ -130,13 +135,11 @@ if Config.SqlKeybinding then
                 TriggerServerEvent("rp:ServerKeybindDelete", key)
                 Wait(1000)
                 TriggerServerEvent("rp:ServerKeybindExist")
-
             else
-                EmoteChatMessage("'"..key.."' "..Translate('notvalidkey'))
+                SimpleNotify("'" .. key .. "' " .. Translate('notvalidkey'))
             end
         else
             print("invalid")
         end
     end
-
 end
