@@ -580,12 +580,13 @@ function EmoteCommandStart(args)
     end
 end
 
-function CheckAnimalAndOnEmotePlay(EmoteName, name)
+function CheckAnimalAndOnEmotePlay(emoteData)
+    local name = emoteData[3]
     -- if the name string starts with "bdog" and the current ped is in the BigDog list, play the emote
     if string.sub(name, 1, 4) == "bdog" then
         for i = 1, #BigDogs do
             if IsPedModel(PlayerPedId(), GetHashKey(BigDogs[i])) then
-                OnEmotePlay(EmoteName)
+                OnEmotePlay(emoteData)
                 return
             end
         end
@@ -593,7 +594,7 @@ function CheckAnimalAndOnEmotePlay(EmoteName, name)
     elseif string.sub(name, 1, 4) == "sdog" then
         for i = 1, #SmallDogs do
             if IsPedModel(PlayerPedId(), GetHashKey(SmallDogs[i])) then
-                OnEmotePlay(EmoteName)
+                OnEmotePlay(emoteData)
                 return
             end
         end
