@@ -140,7 +140,7 @@ CreateThread(function()
 end)
 
 RegisterCommand('e', function(source, args, raw) EmoteCommandStart(args) end, false)
-RegisterCommand('emote', function(source, args, raw) EmoteCommandStart( args) end, false)
+RegisterCommand('emote', function(source, args, raw) EmoteCommandStart(args) end, false)
 if Config.SqlKeybinding then
     RegisterCommand('emotebind', function(source, args, raw) EmoteBindStart(source, args, raw) end, false)
     RegisterCommand('emotebinds', function(source, args, raw) EmoteBindsStart() end, false)
@@ -189,7 +189,7 @@ local disableHandsupControls = {
     [54] = true, --  INPUT_WEAPON_SPECIAL_TWO
 
     --- We need these enabled as the weapon and radio wheel are tied together, and I want players to be able to defend themselves
-    --   [81] = true, -- INPUT_VEH_NEXT_RADIO
+    --    [81] = true, -- INPUT_VEH_NEXT_RADIO
     --    [82] = false, -- INPUT_VEH_PREV_RADIO
     --    [83] = true, -- INPUT_VEH_NEXT_RADIO_TRACK
     --    [84] = true, -- INPUT_VEH_PREV_RADIO_TRACK
@@ -686,7 +686,6 @@ function CheckGender()
 
     DebugPrint("Set gender as = (" .. PlayerGender .. ")")
 end
-
 
 function OnEmotePlay(emoteData, textureVariation)
     if not LocalPlayer.state.canEmote then return end
